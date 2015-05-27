@@ -1,0 +1,16 @@
+{
+  "name": "SiteLogPurger",
+  "version": "0.1.0",
+  "description": "Purge logs of a single site. Like PrivacyManager’s purging option but limits the operation to a single site. Based on PrivacyManager’s code. Command line interface only.",
+  "theme": false,
+  "require": {
+    "piwik": ">=2.13.0"
+  },
+  "authors": [
+    {
+      "name": "Ere Maijala",
+      "email": "ere.maijala@helsinki.fi",
+      "homepage": "https://github.com/NatLibFi/SiteLogPurger"
+    }
+  ]
+}
