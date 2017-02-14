@@ -38,6 +38,7 @@ class SiteLogPurger extends \Piwik\Plugin
      */
     public function purgeData($idSite, $deleteLogsOlderThan, $output)
     {
+        $output->writeln("<info>SiteLogPurger: Determining last visit to purge</info>");
         $maxIdVisit = $this->getDeleteIdVisitOffset($deleteLogsOlderThan);
 
         // break if no ID was found (nothing to delete for given period)
@@ -52,7 +53,18 @@ class SiteLogPurger extends \Piwik\Plugin
         $where = "WHERE idvisit <= ? AND idsite = ?";
         foreach ($logTables as $logTable) {
             $output->writeln("<info>SiteLogPurger: purging $logTable</info>");
-            Db::deleteAllRows($logTable, $where, "idvisit ASC", 10000, array($maxIdVisit, $idSite));
+
+            // Delete with LIMIT can be really slow on large tables, so just select sets of 1000 visit ids and delete them
+            while (true) {
+                $idList = Db::fetchAll("SELECT idvisit FROM $logTable $where LIMIT 1000", array($maxIdVisit, $idSite));
+                if (empty($idList)) {
+                    break;
+                }
+                $idList = array_column($idList, 'idvisit');
+                Db::query("DELETE FROM $logTable WHERE idsite = ? AND idvisit IN (" . implode(',', $idList) . ")", array($idSite));
+                $output->write(".");
+            };
+            $output->writeln("");
         }
 
         // optimize table overhead after deletion
